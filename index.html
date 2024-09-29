@@ -260,8 +260,8 @@
     let rectangle_start_y = 32;
     let rectangle_w = 32;
     let rectangle_h = 32;
-    let rectangle_interval_w = 64;
-    let rectangle_interval_h = 64;
+    let rectangle_interval_w = 32;
+    let rectangle_interval_h = 32;
 
     let arrow_start_x = rectangle_start_x + rectangle_w/2;
     let arrow_start_y = rectangle_start_y + rectangle_h/2;
@@ -298,14 +298,39 @@
         clearRectangle();
 
         boxes.forEach((item, index) => {
-            rectangle_num.push({x:index, y:index**2/10});
+            rectangle_num.push({x:index, y:0});
             splitStringToArray(item.successor).forEach((arrow_item, arrow_index) => {
                 if (arrow_item.length !== 0) {
                     arrow_num.push({from:index, to:Number(arrow_item)})
                 }
             })
         });
-        console.log(arrow_num);
+
+        let inner_index = false;
+        let inner_num = 0;
+        let gene = [rectangle_num.length, 0];
+        while(true){
+            inner_index = false;
+            boxes.forEach((item, index) => {
+                if (rectangle_num[index].y === inner_num){
+                    splitStringToArray(item.successor).forEach((arrow_item, arrow_index) => {
+                        if (arrow_item.length !== 0) {
+                            rectangle_num[arrow_item].x = gene[inner_num+1];
+                            rectangle_num[arrow_item].y = inner_num + 1;
+                            gene[inner_num] -= 1;
+                            gene[inner_num+1] += 1;
+                            console.log("Hello");
+                            inner_index = true;
+                        }
+                    })
+                }
+            })
+            if (!inner_index) {
+                break;
+            }
+            inner_num += 1;
+            gene.push(0);
+        }
 
         arrow_num.forEach((item, index) => {
             drawLine(
