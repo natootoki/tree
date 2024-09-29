@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button onclick="adder();">add box</button>
+    <!-- <button onclick="displayer();">piyo</button>
+    <button onclick="updater();">fuga</button> -->
+
+    <input type="text" id="inputField" placeholder="値が表示されます" />
+    <button id="applyButton" onclick="applyer();">apply</button>
+    <div id="container"></div>
+</body>
+<script>
+    let array = [
+        { name: "Alice", age: 25, city: "New York" },
+        { name: "Bob", age: 30, city: "Los Angeles" },
+        { name: "Charlie", age: 35, city: "Chicago" }
+    ];
+    console.log(array[0]["name"]);
+
+    let boxes = []
+    let box_num = 0;
+
+    const container = document.getElementById("container");
+    const inputField = document.getElementById("inputField");
+    const applyButton = document.getElementById("applyButton");
+
+    let lastClickedKey = null; // 直前にクリックしたプロパティ名を保持
+    let lastClickedIndex = null; // 直前にクリックしたインデックスを保持
+
+    let update_add = [];
+    let update_delete = [];
+
+    function adder() {
+        boxes.push({ 
+            id: box_num.toString(),
+            name: "box"+box_num,
+            predecessor: "",
+            successor: ""
+        })
+        box_num += 1;
+        // console.log(boxes);
+        displayer();
+    }
+
+    function displayer() {
+        // containerをリセット
+        container.innerHTML = '';
+
+        // 配列の内容をリスト形式で表示
+        boxes.forEach((item, index) => {
+            const li = document.createElement("li");
+
+            Object.entries(item).forEach(([key, value]) => {
+                const button = document.createElement("button");
+                button.textContent = key; // プロパティ名をボタンに設定
+                button.id = `button-${index}-${key}`; // 固有のIDを割り振り
+                
+                // ボタンをクリックしたときの処理
+                button.onclick = () => {
+                    inputField.value = value; // 入力欄に値を設定
+                    lastClickedKey = key; // 直前のキーを保存
+                    lastClickedIndex = index; // 直前のインデックスを保存
+                    // console.log(lastClickedKey);
+                    // console.log(lastClickedIndex);
+                };
+
+                li.appendChild(button); // ボタンをリスト項目に追加
+                li.appendChild(document.createTextNode(`: ${value}`)); // 値をテキストとして追加
+            });
+
+            container.appendChild(li); // <div>に<li>を追加
+        });
+    }
+
+    function reseter() {
+        const container = document.getElementById("container");
+
+        // containerをリセット
+        container.innerHTML = '';
+    }
+
+    // 適用ボタンをクリックしたときの処理
+    function applyer() {
+        update_detector();
+        // console.log(lastClickedKey);
+        // console.log(lastClickedIndex);
+        if (lastClickedKey !== null && lastClickedIndex !== null) {
+            boxes[lastClickedIndex][lastClickedKey] = inputField.value; // 配列の値を更新
+            // console.log(`Updated ${lastClickedKey} to ${inputField.value}`); // 更新したことを通知
+        }
+        if (lastClickedKey === "predecessor" ||  lastClickedKey === "successor"){
+            connection_updater();
+        }
+        displayer();
+    };
+
+    function updater() {
+        const num = 0;
+        const pro = "name";
+        boxes[num][pro] = "Natootoki";
+    }
+
+    function splitStringToArray(inputString) {
+        return inputString.split(',').map(item => item.trim());
+    }
+
+    function arrayToString(inputArray) {
+        return inputArray.join(', ');
+    }
+
+    function removeDuplicates(inputArray) {
+        return [...new Set(inputArray)];
+    }
+
+    function findIndexOfKeyword(array, keyword) {
+        return array.findIndex(item => item.includes(keyword));
+    }
+
+    function findIndexOfId(array, id) {
+        return array.findIndex(item => item.id === id);
+    }
+
+    function connection_updater() {
+        let connection_array = splitStringToArray(boxes[lastClickedIndex][lastClickedKey]);
+        let box_id_list = [];
+        let update_add_index = [];
+        let update_delete_index = [];
+        update_add.forEach((connection) => {
+            update_add_index.push(findIndexOfId(boxes, connection));
+        });
+
+        update_delete.forEach((connection) => {
+            update_delete_index.push(findIndexOfId(boxes, connection));
+        });
+        boxes.forEach((box) => {
+            box_id_list.push(box["id"]);
+            update_add_index.forEach((connection) => {
+                // console.log(boxes[connection]["name"]);
+                // console.log(box["name"] === boxes[connection]["name"]);
+                if (connection !== -1){
+                    if (box["name"] === boxes[connection]["name"]) {
+                        let target = "";
+                        if (lastClickedKey === "successor") {
+                            target = "predecessor";
+                        }else if (lastClickedKey === "predecessor") {
+                            target = "successor"
+                        }
+                        if (box[target] !== "") {
+                            box[target] += ", ";
+                        }
+                        box[target] += boxes[lastClickedIndex]["id"];
+                        box[target] = arrayToString(removeDuplicates(splitStringToArray(box[target])));
+                    }
+                }
+            });
+            update_delete_index.forEach((connection) => {
+                if (connection !== -1){
+                    if (box["name"] === boxes[connection]["name"]) {
+                        let target = "";
+                        if (lastClickedKey === "successor") {
+                            target = "predecessor";
+                        }else if (lastClickedKey === "predecessor") {
+                            target = "successor"
+                        }
+                        let target_box_id = findIndexOfKeyword(splitStringToArray(box[target]), "0");
+                        let splice_array = splitStringToArray(box[target]);
+                        splice_array.splice(target_box_id, 1);
+                        box[target] = arrayToString(splice_array);
+                        console.log(box[target])
+                    }
+                }
+
+            });
+            // console.log(box_id_list);
+        });
+    }
+
+    function compareArrays(arrayA, arrayB) {
+        update_add = [];
+        update_delete = [];
+
+        // 配列Bに追加された要素を探す
+        arrayB.forEach(item => {
+            if (!arrayA.includes(item)) {
+                update_add.push(item);
+            }
+        });
+
+        // 配列Aから削除された要素を探す
+        arrayA.forEach(item => {
+            if (!arrayB.includes(item)) {
+                update_delete.push(item);
+            }
+        });
+    }
+
+    function update_detector() {
+        compareArrays(splitStringToArray(boxes[lastClickedIndex][lastClickedKey]), splitStringToArray(inputField.value))
+        console.log("add:"+update_add);
+        console.log("delete:"+update_delete);
+    }
+
+    function hoge() {
+        console.log("hoge");
+    }
+</script>
+</html>
