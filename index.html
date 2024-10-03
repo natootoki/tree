@@ -26,6 +26,14 @@
     </style>
 </head>
 <body>
+    <button id="downloadButton">Download Boxes</button>
+    <input type="file" id="fileInput" accept=".json" style="display: none;" />
+    <button id="importButton">Import JSON</button>
+    <hr>
+    <button id="exportButton">Export to Textarea</button>
+    <button id="importFromTextareaButton">Import from Textarea</button>
+    <textarea id="outputTextarea" rows="10" cols="50" placeholder="Output will appear here..."></textarea>
+    <hr>
     <button onclick="adder();">add box</button>
     <!-- <button onclick="displayer();">piyo</button>
     <button onclick="updater();">fuga</button> -->
@@ -49,6 +57,21 @@
     let update_add = [];
     let update_delete = [];
 
+    // idプロパティの最大値を取得する関数
+    function updateBoxNum() {
+        const ids = boxes
+            .map(box => parseInt(box.id, 10)) // idを整数に変換
+            .filter(num => !isNaN(num)); // 数字でないものを除外
+
+        box_num = ids.length > 0 ? Math.max(...ids)+1 : 0; // 最大値を取得し、配列が空なら0に
+    }
+
+    // 重複チェックの関数
+    function isIdUnique(inputId) {
+        // boxesのidプロパティと比較して重複チェック
+        return !boxes.some(box => box.id === inputId);
+    }
+
     function adder() {
         boxes.push({ 
             id: box_num.toString(),
@@ -56,8 +79,8 @@
             successor: "",
             name: "box"+box_num,
             link: ""
-        })
-        box_num += 1;
+        });
+        updateBoxNum();
         displayer();
     }
 
@@ -107,7 +130,7 @@
 
             boxes.push(entry); // 配列にオブジェクトを追加
         });
-        box_num = boxes.length;
+        updateBoxNum();
 
         console.log(boxes); // 結果をコンソールに表示
     }
@@ -123,7 +146,14 @@
     function applyer() {
         update_detector();
         if (lastClickedKey !== null && lastClickedIndex !== null) {
-            boxes[lastClickedIndex][lastClickedKey] = inputField.value; // 配列の値を更新
+            if (lastClickedKey === "id"){
+                if (isIdUnique(inputField.value)) {
+                    boxes[lastClickedIndex][lastClickedKey] = inputField.value; // 配列の値を更新
+                    updateBoxNum();
+                }
+            }else {
+                boxes[lastClickedIndex][lastClickedKey] = inputField.value; // 配列の値を更新
+            }
             // console.log(`Updated ${lastClickedKey} to ${inputField.value}`); // 更新したことを通知
         }
         if (lastClickedKey === "predecessor" ||  lastClickedKey === "successor"){
@@ -239,6 +269,89 @@
         console.log(boxes);
         reseter();
         displayer();
+    });
+
+    // boxes配列の内容をテキストエリアに書き出す関数
+    function exportBoxesToTextarea() {
+        const jsonString = JSON.stringify(boxes, null, 2); // 配列をJSON形式の文字列に変換
+        document.getElementById('outputTextarea').value = jsonString; // テキストエリアに書き込む
+    }
+
+    // テキストエリアの内容をboxes配列に反映させる関数
+    function importFromTextarea() {
+        const textareaContent = document.getElementById('outputTextarea').value; // テキストエリアの内容を取得
+        try {
+            boxes = JSON.parse(textareaContent); // JSONをパースしてboxesに代入
+            updateBoxNum();
+            console.log('Imported from textarea:', boxes); // コンソールに表示
+            reseter();
+            displayer();
+        } catch (error) {
+            console.error('Error parsing JSON from textarea:', error); // エラーハンドリング
+        }
+    }
+
+    function downloadArrayAsFile(array, filename) {
+        // 配列をJSON形式の文字列に変換
+        const jsonString = JSON.stringify(array, null, 2); // 整形して可読性を向上
+
+        // Blobを作成
+        const blob = new Blob([jsonString], { type: 'application/json' });
+
+        // BlobをURLに変換
+        const url = URL.createObjectURL(blob);
+
+        // aタグを作成してダウンロードをトリガー
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename; // ダウンロードするファイル名
+        document.body.appendChild(a); // 一時的にaタグを追加
+        a.click(); // クリックしてダウンロードを開始
+        document.body.removeChild(a); // aタグを削除
+        URL.revokeObjectURL(url); // オブジェクトURLを解放
+    }
+
+    // JSONファイルをインポートしてboxes配列に反映させる関数
+    function importJSONFile(file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(event) {
+            try {
+                const json = JSON.parse(event.target.result); // JSONをパース
+                boxes = json; // boxes配列に反映
+                console.log('Imported boxes:', boxes); // コンソールに表示
+                reseter();
+                displayer();
+            } catch (error) {
+                console.error('Error parsing JSON:', error); // エラーハンドリング
+            }
+        };
+
+        reader.readAsText(file); // ファイルをテキストとして読み込む
+    }
+
+    // Exportボタンのクリックイベントを監視
+    document.getElementById('exportButton').addEventListener('click', exportBoxesToTextarea);
+
+    // Import from Textareaボタンのクリックイベントを監視
+    document.getElementById('importFromTextareaButton').addEventListener('click', importFromTextarea);
+
+    // ボタンのクリックイベントを監視
+    document.getElementById('downloadButton').addEventListener('click', () => {
+        downloadArrayAsFile(boxes, 'boxes.json'); // 関数を呼び出す
+    });
+
+    // インポートボタンのクリックイベントを監視
+    document.getElementById('importButton').addEventListener('click', () => {
+        document.getElementById('fileInput').click(); // ファイル入力をクリック
+    });
+
+    // ファイル入力のchangeイベントを監視
+    document.getElementById('fileInput').addEventListener('change', (event) => {
+        const file = event.target.files[0]; // 最初のファイルを取得
+        if (file) {
+            importJSONFile(file); // ファイルをインポート
+        }
     });
 
     function drawRectangle(x, y, width, height, text, link) {
