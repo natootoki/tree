@@ -13,12 +13,14 @@
 
         .square {
             position: absolute; /* 絶対位置指定 */
-            background-color: blue; /* 四角形の色 */
+            background-color: aqua; /* 四角形の色 */
+            border-radius: 8px;
+            border: 2px solid black;
         }
 
         .line {
             position: absolute; /* 絶対位置指定 */
-            border: 1px solid red; /* 線の色 */
+            border: 1px solid black; /* 線の色 */
             transform-origin: 0 0; /* 回転の基点を始点に設定 */
         }
     </style>
@@ -34,13 +36,6 @@
     <div id="rectangle"></div>
 </body>
 <script>
-    let array = [
-        { name: "Alice", age: 25, city: "New York" },
-        { name: "Bob", age: 30, city: "Los Angeles" },
-        { name: "Charlie", age: 35, city: "Chicago" }
-    ];
-    console.log(array[0]["name"]);
-
     let boxes = []
     let box_num = 0;
 
@@ -57,12 +52,12 @@
     function adder() {
         boxes.push({ 
             id: box_num.toString(),
-            name: "box"+box_num,
             predecessor: "",
-            successor: ""
+            successor: "",
+            name: "box"+box_num,
+            link: ""
         })
         box_num += 1;
-        // console.log(boxes);
         displayer();
     }
 
@@ -84,18 +79,37 @@
                     inputField.value = value; // 入力欄に値を設定
                     lastClickedKey = key; // 直前のキーを保存
                     lastClickedIndex = index; // 直前のインデックスを保存
-                    // console.log(lastClickedKey);
-                    // console.log(lastClickedIndex);
                 };
 
                 li.appendChild(button); // ボタンをリスト項目に追加
                 li.appendChild(document.createTextNode(`: ${value}`)); // 値をテキストとして追加
             });
-
             container.appendChild(li); // <div>に<li>を追加
         });
-
         diagram_displayer();
+    }
+
+    function rebuildBoxesFromHTML() {
+        boxes = []; // boxes配列をリセット
+        const listItems = container.querySelectorAll('li'); // <li>要素を取得
+
+        listItems.forEach(item => {
+            const entry = {}; // 新しいオブジェクトを作成
+            const buttons = item.querySelectorAll('button'); // ボタンを全て取得
+
+            buttons.forEach(button => {
+                const key = button.textContent; // ボタンのテキストをキーに
+                const valueTextNode = button.nextSibling; // ボタンの次のテキストノードを取得
+                // ボタンの次のテキストからのみコロンと空白を削除
+                const value = valueTextNode.textContent.trim().replace(/^:\s*/, ''); 
+                entry[key] = value; // コロンを含まない値をオブジェクトに追加
+            });
+
+            boxes.push(entry); // 配列にオブジェクトを追加
+        });
+        box_num = boxes.length;
+
+        console.log(boxes); // 結果をコンソールに表示
     }
 
     function reseter() {
@@ -108,8 +122,6 @@
     // 適用ボタンをクリックしたときの処理
     function applyer() {
         update_detector();
-        // console.log(lastClickedKey);
-        // console.log(lastClickedIndex);
         if (lastClickedKey !== null && lastClickedIndex !== null) {
             boxes[lastClickedIndex][lastClickedKey] = inputField.value; // 配列の値を更新
             // console.log(`Updated ${lastClickedKey} to ${inputField.value}`); // 更新したことを通知
@@ -161,8 +173,6 @@
         boxes.forEach((box) => {
             box_id_list.push(box["id"]);
             update_add_index.forEach((connection) => {
-                // console.log(boxes[connection]["name"]);
-                // console.log(box["name"] === boxes[connection]["name"]);
                 if (connection !== -1){
                     if (box["name"] === boxes[connection]["name"]) {
                         let target = "";
@@ -195,9 +205,7 @@
                         console.log(box[target])
                     }
                 }
-
             });
-            // console.log(box_id_list);
         });
     }
 
@@ -226,13 +234,23 @@
         console.log("delete:"+update_delete);
     }
 
-    function drawRectangle(x, y, width, height) {
-        const square = document.createElement('div'); // 新しい<div>要素を作成
+    document.addEventListener('DOMContentLoaded', () => {
+        rebuildBoxesFromHTML();
+        console.log(boxes);
+        reseter();
+        displayer();
+    });
+
+    function drawRectangle(x, y, width, height, text, link) {
+        const square = document.createElement('a'); // 新しい<div>要素を作成
         square.className = 'square'; // クラス名を設定
         square.style.left = `${x}px`; // X座標を設定
         square.style.top = `${y}px`; // Y座標を設定
         square.style.width = `${width}px`; // 幅を設定
         square.style.height = `${height}px`; // 高さを設定
+        square.textContent = text;
+        square.href = link;
+        square.target = '_blank';
 
         document.getElementById('rectangle').appendChild(square); // id="rectangle"の配下に追加
     }
@@ -256,12 +274,12 @@
         document.getElementById('rectangle').appendChild(line); // id="rectangle"の配下に追加
     }
 
-    let rectangle_start_x = 32;
-    let rectangle_start_y = 32;
-    let rectangle_w = 32;
-    let rectangle_h = 32;
-    let rectangle_interval_w = 32;
-    let rectangle_interval_h = 32;
+    let rectangle_start_x = 64;
+    let rectangle_start_y = 64;
+    let rectangle_w = 64;
+    let rectangle_h = 64;
+    let rectangle_interval_w = 64;
+    let rectangle_interval_h = 64;
 
     let arrow_start_x = rectangle_start_x + rectangle_w/2;
     let arrow_start_y = rectangle_start_y + rectangle_h/2;
@@ -298,7 +316,7 @@
         clearRectangle();
 
         boxes.forEach((item, index) => {
-            rectangle_num.push({x:index, y:0});
+            rectangle_num.push({x:index, y:0, text:item.name, link:item.link});
             splitStringToArray(item.successor).forEach((arrow_item, arrow_index) => {
                 if (arrow_item.length !== 0) {
                     arrow_num.push({from:index, to:Number(arrow_item)})
@@ -347,7 +365,9 @@
                 rectangle_start_x + (rectangle_w + rectangle_interval_w) * item.x,
                 rectangle_start_y + (rectangle_h + rectangle_interval_h) * item.y,
                 rectangle_w,
-                rectangle_h
+                rectangle_h,
+                item.text,
+                item.link
             ); // (x, y, 幅, 高さ)
         });
     }
