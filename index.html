@@ -497,15 +497,15 @@
             elements.forEach((element,index) => {
                 console.log(boxes[index]["id"]);
                 // 元のサイズを保持
-                const originalWidth = element.offsetWidth;
-                const originalHeight = element.offsetHeight;
+                // const originalWidth = element.offsetWidth;
+                // const originalHeight = element.offsetHeight;
 
                 element.addEventListener('mouseenter', () => {
                     // 全ての要素に対してスタイルを変更
                     elements.forEach((el,ind) => {
                         if(index === ind || findIndexOfKeyword(splitStringToArray(boxes[index]["successor"]),boxes[ind]["id"]) > -1 || findIndexOfKeyword(splitStringToArray(boxes[index]["predecessor"]),boxes[ind]["id"]) > -1) {
-                            el.style.width = originalWidth + 8 + 'px'; // 幅を4px増加
-                            el.style.height = originalHeight + 8 + 'px'; // 高さを4px増加
+                            el.style.width = rectangle_w + 8 + 'px'; // 幅を4px増加
+                            el.style.height = rectangle_h + 8 + 'px'; // 高さを4px増加
                             el.style.borderColor = 'red'; // 枠線の色を赤に変更
                         }
                     });
@@ -515,8 +515,8 @@
                 element.addEventListener('mouseleave', () => {
                     elements.forEach((el,ind) => {
                         if(index === ind || findIndexOfKeyword(splitStringToArray(boxes[index]["successor"]),boxes[ind]["id"]) > -1 || findIndexOfKeyword(splitStringToArray(boxes[index]["predecessor"]),boxes[ind]["id"]) > -1) {
-                            el.style.width = originalWidth + 'px'; // 元の幅に戻す
-                            el.style.height = originalHeight + 'px'; // 元の高さに戻す
+                            el.style.width = rectangle_w + 'px'; // 元の幅に戻す
+                            el.style.height = rectangle_h + 'px'; // 元の高さに戻す
                             el.style.borderColor = "black"; // 枠線の色を元に戻す
                         }
                     });
