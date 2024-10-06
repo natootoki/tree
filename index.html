@@ -23,6 +23,10 @@
             border: 1px solid black; /* 線の色 */
             transform-origin: 0 0; /* 回転の基点を始点に設定 */
         }
+
+        .resizable {
+            transition: all 0.2s ease; /* スムーズな変化を加える */
+        }
     </style>
 </head>
 <body>
@@ -181,7 +185,7 @@
     }
 
     function findIndexOfKeyword(array, keyword) {
-        return array.findIndex(item => item.includes(keyword));
+        return array.findIndex(item => item === keyword);
     }
 
     function findIndexOfId(array, id) {
@@ -356,7 +360,7 @@
 
     function drawRectangle(x, y, width, height, text, link) {
         const square = document.createElement('a'); // 新しい<div>要素を作成
-        square.className = 'square'; // クラス名を設定
+        square.className = 'square resizable'; // クラス名を設定
         square.style.left = `${x}px`; // X座標を設定
         square.style.top = `${y}px`; // Y座標を設定
         square.style.width = `${width}px`; // 幅を設定
@@ -463,7 +467,6 @@
             rectangle_num[index].x = gene[rectangle_num[index].y];
             gene[rectangle_num[index].y] += 1;
         })
-        console.log("hoge"+gene);
 
         arrow_num.forEach((item, index) => {
             drawLine(
@@ -485,6 +488,41 @@
                 item.link
             ); // (x, y, 幅, 高さ)
         });
+
+        if (rectangle_num.length>0) {
+            // .resizableクラスを持つすべての要素を取得
+            const elements = document.querySelectorAll('.resizable');
+
+            // それぞれの要素に対してイベントリスナーを設定
+            elements.forEach((element,index) => {
+                console.log(boxes[index]["id"]);
+                // 元のサイズを保持
+                const originalWidth = element.offsetWidth;
+                const originalHeight = element.offsetHeight;
+
+                element.addEventListener('mouseenter', () => {
+                    // 全ての要素に対してスタイルを変更
+                    elements.forEach((el,ind) => {
+                        if(index === ind || findIndexOfKeyword(splitStringToArray(boxes[index]["successor"]),boxes[ind]["id"]) > -1 || findIndexOfKeyword(splitStringToArray(boxes[index]["predecessor"]),boxes[ind]["id"]) > -1) {
+                            el.style.width = originalWidth + 8 + 'px'; // 幅を4px増加
+                            el.style.height = originalHeight + 8 + 'px'; // 高さを4px増加
+                            el.style.borderColor = 'red'; // 枠線の色を赤に変更
+                        }
+                    });
+                });
+
+                // マウスが要素から離れた時のイベントリスナー
+                element.addEventListener('mouseleave', () => {
+                    elements.forEach((el,ind) => {
+                        if(index === ind || findIndexOfKeyword(splitStringToArray(boxes[index]["successor"]),boxes[ind]["id"]) > -1 || findIndexOfKeyword(splitStringToArray(boxes[index]["predecessor"]),boxes[ind]["id"]) > -1) {
+                            el.style.width = originalWidth + 'px'; // 元の幅に戻す
+                            el.style.height = originalHeight + 'px'; // 元の高さに戻す
+                            el.style.borderColor = "black"; // 枠線の色を元に戻す
+                        }
+                    });
+                });
+            });
+        }
     }
 
     function hoge() {
