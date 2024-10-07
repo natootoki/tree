@@ -24,6 +24,10 @@
             transform-origin: 0 0; /* 回転の基点を始点に設定 */
         }
 
+        .fixed-element {
+            position: fixed;
+        }
+
         .resizable {
             transition: all 0.2s ease; /* スムーズな変化を加える */
         }
@@ -42,7 +46,7 @@
     <!-- <button onclick="displayer();">piyo</button>
     <button onclick="updater();">fuga</button> -->
 
-    <input type="text" id="inputField" placeholder="値が表示されます" />
+    <input type="text" class="fixed-element" style="left: 40%;" id="inputField" placeholder="値が表示されます" />
     <button id="applyButton" onclick="applyer();">apply</button>
     <div id="container"></div>
     <div id="rectangle"></div>
@@ -82,6 +86,7 @@
             predecessor: "",
             successor: "",
             name: "box"+box_num,
+            color: "aqua",
             link: ""
         });
         updateBoxNum();
@@ -358,13 +363,14 @@
         }
     });
 
-    function drawRectangle(x, y, width, height, text, link) {
+    function drawRectangle(x, y, width, height, text, color, link) {
         const square = document.createElement('a'); // 新しい<div>要素を作成
         square.className = 'square resizable'; // クラス名を設定
         square.style.left = `${x}px`; // X座標を設定
         square.style.top = `${y}px`; // Y座標を設定
         square.style.width = `${width}px`; // 幅を設定
         square.style.height = `${height}px`; // 高さを設定
+        square.style.backgroundColor = color;
         square.textContent = text;
         square.href = link;
         square.target = '_blank';
@@ -414,6 +420,8 @@
     // arrow_num.push({from:0, to:1});
     // arrow_num.push({from:1, to:2});
 
+    let colors = ["aqua", "lime", "yellow", "gray"]
+
     // 使用例
     // drawLine(50, 50, 200, 200); // (始点X, 始点Y, 終点X, 終点Y)
     // drawLine(100, 300, 300, 100); // 別の直線
@@ -433,7 +441,7 @@
         clearRectangle();
 
         boxes.forEach((item, index) => {
-            rectangle_num.push({x:index, y:0, text:item.name, link:item.link});
+            rectangle_num.push({x:index, y:0, text:item.name, color:item["color"], link:item.link});
             splitStringToArray(item.successor).forEach((arrow_item, arrow_index) => {
                 if (arrow_item.length !== 0) {
                     arrow_num.push({from:index, to:Number(arrow_item)})
@@ -485,6 +493,7 @@
                 rectangle_w,
                 rectangle_h,
                 item.text,
+                item.color,
                 item.link
             ); // (x, y, 幅, 高さ)
         });
@@ -520,6 +529,16 @@
                             el.style.borderColor = "black"; // 枠線の色を元に戻す
                         }
                     });
+                });
+                element.addEventListener("contextmenu", (event) => {
+                    event.preventDefault();
+                    inputField.value = boxes[index]["name"];
+                    inputField.focus();
+                    inputField.select();
+                    lastClickedKey = "name";
+                    lastClickedIndex = index;
+                    boxes[index]["color"] = colors[(findIndexOfKeyword(colors, element.style.backgroundColor)+1)%colors.length];
+                    displayer();
                 });
             });
         }
