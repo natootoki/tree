@@ -31,6 +31,17 @@
         .resizable {
             transition: all 0.2s ease; /* スムーズな変化を加える */
         }
+
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+            white-space: pre;
+        }
     </style>
 </head>
 <body>
@@ -50,6 +61,7 @@
     <button id="applyButton" onclick="applyer();">apply</button>
     <div id="container"></div>
     <div id="rectangle"></div>
+    <div id="tooltip" class="tooltip">これは説明文です</div>
 </body>
 <script>
     let boxes = []
@@ -286,6 +298,9 @@
         console.log(boxes);
         reseter();
         displayer();
+
+        const tooltipTarget = document.querySelector(".tooltip-target");
+        const tooltip = document.getElementById("tooltip");
     });
 
     // boxes配列の内容をテキストエリアに書き出す関数
@@ -374,7 +389,7 @@
 
     function drawRectangle(x, y, width, height, text, color, link) {
         const square = document.createElement('a'); // 新しい<div>要素を作成
-        square.className = 'square resizable'; // クラス名を設定
+        square.className = 'square resizable tooltip-target'; // クラス名を設定
         square.style.left = `${x}px`; // X座標を設定
         square.style.top = `${y}px`; // Y座標を設定
         square.style.width = `${width}px`; // 幅を設定
@@ -445,6 +460,21 @@
         arrow_num = [];
     }
 
+    function id_name_changer(id_string) {
+        let changeId = splitStringToArray(id_string);
+        let nameArray = [];
+        changeId.forEach((item) => {
+            if(item.length>0) {
+                nameArray.push(boxes[findIndexOfId(boxes, item)]["name"]);
+            }
+        });
+        return arrayToString(nameArray);
+    }
+
+    function replaceCommasWithBr(text) {
+        return text.replace(/,/g, "<br>");
+    }
+
     function diagram_displayer() {
 
         clearRectangle();
@@ -513,11 +543,17 @@
 
             // それぞれの要素に対してイベントリスナーを設定
             elements.forEach((element,index) => {
-                console.log(boxes[index]["id"]);
-                // 元のサイズを保持
-                // const originalWidth = element.offsetWidth;
-                // const originalHeight = element.offsetHeight;
-
+                element.addEventListener("mouseover", function(event) {
+                    tooltip.style.display = "block";
+                    tooltip.innerHTML = "前提:<br> " + replaceCommasWithBr(id_name_changer(boxes[index]["predecessor"])) + "<br>" + "後続:<br> " + replaceCommasWithBr(id_name_changer(boxes[index]["successor"]));
+                });
+                element.addEventListener("mousemove", function() {
+                    tooltip.style.left = event.pageX + 10 + "px";
+                    tooltip.style.top = event.pageY + 10 + "px";
+                });
+                element.addEventListener("mouseout", function() {
+                    tooltip.style.display = "none";
+                })
                 element.addEventListener('mouseenter', () => {
                     // 全ての要素に対してスタイルを変更
                     elements.forEach((el,ind) => {
