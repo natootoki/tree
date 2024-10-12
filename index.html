@@ -233,7 +233,7 @@
             box_id_list.push(box["id"]);
             update_add_index.forEach((connection) => {
                 if (connection !== -1){
-                    if (box["name"] === boxes[connection]["name"]) {
+                    if (box["id"] === boxes[connection]["id"]) {
                         let target = "";
                         if (lastClickedKey === "successor") {
                             target = "predecessor";
@@ -250,7 +250,7 @@
             });
             update_delete_index.forEach((connection) => {
                 if (connection !== -1){
-                    if (box["name"] === boxes[connection]["name"]) {
+                    if (box["id"] === boxes[connection]["id"]) {
                         let target = "";
                         if (lastClickedKey === "successor") {
                             target = "predecessor";
