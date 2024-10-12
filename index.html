@@ -121,6 +121,8 @@
                 // ボタンをクリックしたときの処理
                 button.onclick = () => {
                     inputField.value = value; // 入力欄に値を設定
+                    inputField.focus();
+                    inputField.select();
                     lastClickedKey = key; // 直前のキーを保存
                     lastClickedIndex = index; // 直前のインデックスを保存
                 };
