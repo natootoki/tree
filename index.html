@@ -42,6 +42,28 @@
             z-index: 1000;
             white-space: pre;
         }
+
+                /* テーブル風のレイアウトを適用 */
+                .grid-container {
+            display: table;
+            width: 100%;
+            border-spacing: 10px; /* ボタンとテキスト間のスペース */
+        }
+
+        .grid-item {
+            display: table-row;
+        }
+
+        .grid-button {
+            display: table-cell;
+            padding: 5px;
+        }
+
+        .grid-value {
+            display: table-cell;
+            padding: 5px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -115,13 +137,17 @@
         // containerをリセット
         container.innerHTML = '';
 
-        // 配列の内容をリスト形式で表示
+        const gridContainer = document.createElement("div");
+        gridContainer.classList.add("grid-container");
+
         boxes.forEach((item, index) => {
-            const li = document.createElement("li");
+            const gridItem = document.createElement("div");
+            gridItem.classList.add("grid-item");
 
             Object.entries(item).forEach(([key, value]) => {
                 const button = document.createElement("button");
                 button.textContent = key; // プロパティ名をボタンに設定
+                button.classList.add("grid-button");
                 button.id = `button-${index}-${key}`; // 固有のIDを割り振り
                 
                 // ボタンをクリックしたときの処理
@@ -133,35 +159,20 @@
                     lastClickedIndex = index; // 直前のインデックスを保存
                 };
 
-                li.appendChild(button); // ボタンをリスト項目に追加
-                li.appendChild(document.createTextNode(`: ${value}`)); // 値をテキストとして追加
+                const valueText = document.createElement("span");
+                valueText.textContent = value; // 値をテキストとして設定
+                valueText.classList.add("grid-value");
+
+                // ボタンと値を追加
+                gridItem.appendChild(button);
+                gridItem.appendChild(valueText);
             });
-            container.appendChild(li); // <div>に<li>を追加
+
+            gridContainer.appendChild(gridItem); // グリッド項目をコンテナに追加
         });
+        container.appendChild(gridContainer); // <div>にグリッドコンテナを追加
+
         diagram_displayer();
-    }
-
-    function rebuildBoxesFromHTML() {
-        boxes = []; // boxes配列をリセット
-        const listItems = container.querySelectorAll('li'); // <li>要素を取得
-
-        listItems.forEach(item => {
-            const entry = {}; // 新しいオブジェクトを作成
-            const buttons = item.querySelectorAll('button'); // ボタンを全て取得
-
-            buttons.forEach(button => {
-                const key = button.textContent; // ボタンのテキストをキーに
-                const valueTextNode = button.nextSibling; // ボタンの次のテキストノードを取得
-                // ボタンの次のテキストからのみコロンと空白を削除
-                const value = valueTextNode.textContent.trim().replace(/^:\s*/, ''); 
-                entry[key] = value; // コロンを含まない値をオブジェクトに追加
-            });
-
-            boxes.push(entry); // 配列にオブジェクトを追加
-        });
-        updateBoxNum();
-
-        console.log(boxes); // 結果をコンソールに表示
     }
 
     function reseter() {
@@ -302,8 +313,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        rebuildBoxesFromHTML();
-        console.log(boxes);
         reseter();
         displayer();
 
