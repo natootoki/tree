@@ -531,7 +531,10 @@
         boxes.forEach((item, index) => {
             rectangle_num[index].x = gene[rectangle_num[index].y];
             gene[rectangle_num[index].y] += 1;
-        })
+        });
+
+        console.log(gene.length);
+        document.getElementById('rectangle').style.height = rectangle_start_y * 2 + (rectangle_h + rectangle_interval_h) * gene.length + "px"
 
         arrow_num.forEach((item, index) => {
             drawLine(
