@@ -123,7 +123,9 @@
             successor: "",
             name: "box"+box_num,
             color: "aqua",
-            link: ""
+            link: "",
+            x: "0",
+            y: "0",
         });
         
         inputField.value = "box"+box_num; // 入力欄に値を設定
@@ -465,6 +467,13 @@
 
     let colors = ["aqua", "lime", "yellow", "gray"]
 
+    let drag_start_x = 0;
+    let drag_start_y = 0;
+    let drag_x = 0;
+    let drag_y = 0;
+    let is_drag = false;
+    let drag_item = -1;
+
     // 使用例
     // drawLine(50, 50, 200, 200); // (始点X, 始点Y, 終点X, 終点Y)
     // drawLine(100, 300, 300, 100); // 別の直線
@@ -499,7 +508,7 @@
         clearRectangle();
 
         boxes.forEach((item, index) => {
-            rectangle_num.push({x:index, y:0, text:item.name, color:item["color"], link:item.link});
+            rectangle_num.push({x:index, y:0, text:item.name, color:item["color"], link:item.link, add_x:item["x"], add_y:item["y"]});
             splitStringToArray(item.successor).forEach((arrow_item, arrow_index) => {
                 if (arrow_item.length !== 0) {
                     arrow_num.push({from:index, to:Number(arrow_item)})
@@ -539,18 +548,18 @@
 
         arrow_num.forEach((item, index) => {
             drawLine(
-                arrow_start_x + arrow_interval_w * rectangle_num[item.from].x,
-                arrow_start_y + arrow_interval_h * rectangle_num[item.from].y,
-                arrow_start_x + arrow_interval_w * rectangle_num[item.to].x,
-                arrow_start_y + arrow_interval_h * rectangle_num[item.to].y
+                arrow_start_x + arrow_interval_w * rectangle_num[item.from].x + parseInt(rectangle_num[item.from].add_x),
+                arrow_start_y + arrow_interval_h * rectangle_num[item.from].y + parseInt(rectangle_num[item.from].add_y),
+                arrow_start_x + arrow_interval_w * rectangle_num[item.to].x + parseInt(rectangle_num[item.to].add_x),
+                arrow_start_y + arrow_interval_h * rectangle_num[item.to].y + parseInt(rectangle_num[item.to].add_y)
             );
             // console.log("hello");
         });
 
         rectangle_num.forEach((item, index) => {
             drawRectangle(
-                rectangle_start_x + (rectangle_w + rectangle_interval_w) * item.x,
-                rectangle_start_y + (rectangle_h + rectangle_interval_h) * item.y,
+                rectangle_start_x + (rectangle_w + rectangle_interval_w) * item.x + parseInt(item.add_x),
+                rectangle_start_y + (rectangle_h + rectangle_interval_h) * item.y + parseInt(item.add_y),
                 rectangle_w,
                 rectangle_h,
                 item.text,
@@ -559,17 +568,51 @@
             ); // (x, y, 幅, 高さ)
         });
 
+        document.addEventListener('mouseup', () => {
+            if (drag_item > -1) {
+                is_drag = false;
+                boxes[drag_item]["x"] = (parseInt(boxes[drag_item]["x"]) + drag_x).toString();
+                boxes[drag_item]["y"] = (parseInt(boxes[drag_item]["y"]) + drag_y).toString();
+                drag_item = -1
+                displayer();
+            }
+        });
+
+        document.addEventListener("mousemove", function(event) {
+            if (is_drag) {
+                drag_x = event.clientX - drag_start_x;
+                drag_y = event.clientY - drag_start_y;
+            }
+        });
+
         if (rectangle_num.length>0) {
             // .resizableクラスを持つすべての要素を取得
             const elements = document.querySelectorAll('.resizable');
 
             // それぞれの要素に対してイベントリスナーを設定
             elements.forEach((element,index) => {
+                element.addEventListener('mousedown', (event) => {
+                    if (event.button === 0) {
+                        event.preventDefault();
+                        is_drag = true;
+                        drag_item = index;
+                        drag_start_x = event.clientX;
+                        drag_start_y = event.clientY;
+                        drag_x = 0;
+                        drag_y = 0;
+                        console.log(drag_item);
+                    }
+                });
+                element.addEventListener('mouseup', (event) => {
+                    if (drag_x == 0 && drag_y == 0 && event.button === 0) {
+                        element.click();
+                    }
+                });
                 element.addEventListener("mouseover", function(event) {
                     tooltip.style.display = "block";
                     tooltip.innerHTML = boxes[index]["id"] +":" + boxes[index]["name"] + "<br>"+"前提:<br> " + replaceCommasWithBr(id_name_changer(boxes[index]["predecessor"])) + "<br>" + "後続:<br> " + replaceCommasWithBr(id_name_changer(boxes[index]["successor"]));
                 });
-                element.addEventListener("mousemove", function() {
+                element.addEventListener("mousemove", function(event) {
                     tooltip.style.left = event.pageX + 32 + "px";
                     tooltip.style.top = event.pageY - 32 + "px";
                 });
