@@ -544,7 +544,7 @@
         });
 
         console.log(gene.length);
-        document.getElementById('rectangle').style.height = rectangle_start_y * 2 + (rectangle_h + rectangle_interval_h) * gene.length + "px"
+        document.getElementById('rectangle').style.height = rectangle_start_y * 2 + (rectangle_h + rectangle_interval_h) * gene.length + window.innerHeight + "px"
 
         arrow_num.forEach((item, index) => {
             drawLine(
